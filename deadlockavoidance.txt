@@ -1,0 +1,102 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+int main() {
+
+    int P, R;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &P);
+
+    printf("Enter number of resources: ");
+    scanf("%d", &R);
+
+    // Allocate matrices dynamically
+    int alloc[P][R], max[P][R], need[P][R], available[R];
+    bool finish[P];
+
+    // ----------------- INPUT ALLOCATION MATRIX ------------------
+    printf("\nEnter Allocation matrix:\n");
+    for (int i = 0; i < P; i++)
+        for (int j = 0; j < R; j++)
+            scanf("%d", &alloc[i][j]);
+
+    // ----------------- INPUT MAX MATRIX -------------------------
+    printf("\nEnter Max matrix:\n");
+    for (int i = 0; i < P; i++)
+        for (int j = 0; j < R; j++)
+            scanf("%d", &max[i][j]);
+
+    // ----------------- INPUT AVAILABLE VECTOR --------------------
+    printf("\nEnter Available resources:\n");
+    for (int j = 0; j < R; j++)
+        scanf("%d", &available[j]);
+
+    // ----------------- COMPUTE NEED MATRIX ------------------------
+    printf("\nNeed Matrix:\n");
+    for (int i = 0; i < P; i++) {
+        for (int j = 0; j < R; j++) {
+
+            need[i][j] = max[i][j] - alloc[i][j];
+
+            printf("%d ", need[i][j]);
+        }
+        printf("\n");
+    }
+
+    // Initialize all Finish[i] as false
+    for (int i = 0; i < P; i++)
+        finish[i] = false;
+
+    int safeSeq[P];   // To store safe sequence
+    int count = 0;    // Completed process count
+
+    // ---------------------- SAFETY CHECK LOOP ---------------------
+    while (count < P) {
+        bool found = false;
+
+        for (int i = 0; i < P; i++) {
+
+            if (!finish[i]) {   // Process not completed yet
+
+                bool flag = true;
+
+                // Check if Need <= Available
+                for (int j = 0; j < R; j++) {
+                    if (need[i][j] > available[j]) {
+                        flag = false;
+                        break;
+                    }
+                }
+
+                // If allocatable
+                if (flag) {
+                    // Add allocation back to available
+                    for (int j = 0; j < R; j++)
+                        available[j] += alloc[i][j];
+
+                    safeSeq[count++] = i; // Add process to safe sequence
+                    finish[i] = true;     // Mark as finished
+                    found = true;
+                }
+            }
+        }
+
+        // If no process could be allocated, unsafe
+        if (!found) {
+            printf("\nSystem is in UNSAFE state.\n");
+            return 0;
+        }
+    }
+
+    // ---------------------- PRINT SAFE SEQUENCE -------------------
+    printf("\nSystem is in SAFE state.\nSafe sequence: ");
+    for (int i = 0; i < P; i++) {
+        printf("P%d ", safeSeq[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
+
